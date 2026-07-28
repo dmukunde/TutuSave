@@ -1,9 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Refreshes the Supabase auth session cookie on every request.
-// Route protection (redirecting unauthenticated users) is added in Phase 1
-// once the (auth) and (app) route groups exist.
+const publicRoutes = ["/", "/login", "/signup"];
+
+// Refreshes the Supabase auth session cookie on every request, and performs
+// an optimistic redirect for protected vs. public routes. This is a
+// convenience check only — real authorization still happens in the DAL
+// (src/lib/supabase/dal.ts) close to the data.
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -30,7 +33,22 @@ export async function updateSession(request: NextRequest) {
 
   // Revalidates the token with the Supabase Auth server (not just a local
   // JWT decode) and transparently refreshes it if expired.
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+  const isPublicRoute = publicRoutes.includes(path);
+
+  if (!data.user && !isPublicRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (data.user && (path === "/login" || path === "/signup")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }
