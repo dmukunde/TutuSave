@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/supabase/dal";
 import { emitEvent } from "@/lib/events";
+import { checkBudgetAlerts } from "@/lib/budgets";
 import {
   transactionSchema,
   type TransactionFormState,
@@ -50,7 +51,15 @@ export async function createTransaction(
     kind: rest.kind,
   });
 
+  await checkBudgetAlerts(supabase, user.id, {
+    id: data.id,
+    category_id: categoryId ?? null,
+    kind: rest.kind,
+    amount: rest.amount,
+  });
+
   revalidatePath("/transactions");
+  revalidatePath("/budgets");
 }
 
 export async function deleteTransaction(formData: FormData) {
