@@ -11,6 +11,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 
 const links = [
@@ -29,7 +30,7 @@ export function AppNav({ email }: { email: string | undefined }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="flex items-center justify-between border-b px-4 py-3 sm:px-6 sm:py-4">
+    <header className="relative z-50 flex items-center justify-between border-b bg-background px-4 py-3 sm:px-6 sm:py-4">
       <div className="flex items-center gap-6">
         <span className="font-semibold tracking-tight">TutuSave</span>
         <nav className="hidden gap-4 sm:flex">
@@ -59,6 +60,20 @@ export function AppNav({ email }: { email: string | undefined }) {
         </form>
 
         <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="pointer-events-auto relative z-10 sm:hidden"
+              />
+            }
+          >
+            <Menu className="size-4" aria-hidden="true" />
+            <span className="sr-only">Open navigation menu</span>
+          </SheetTrigger>
+
           <SheetContent side="left" className="flex flex-col p-0 sm:hidden">
             <SheetHeader className="border-b">
               <SheetTitle>TutuSave</SheetTitle>
@@ -99,16 +114,6 @@ export function AppNav({ email }: { email: string | undefined }) {
             </div>
           </SheetContent>
         </Sheet>
-
-        <Button
-          variant="outline"
-          size="icon"
-          className="sm:hidden"
-          aria-label="Open menu"
-          onClick={() => setOpen(true)}
-        >
-          <Menu className="size-4" />
-        </Button>
       </div>
     </header>
   );
