@@ -1,21 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/supabase/dal";
 import { deleteCategory } from "@/lib/actions/categories";
 import { deleteTransaction } from "@/lib/actions/transactions";
+import { formatMoney } from "@/lib/currency";
 import { CategoryForm } from "@/components/forms/category-form";
 import { TransactionForm } from "@/components/forms/transaction-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-function formatAmount(amount: number, kind: string) {
-  const formatted = amount.toLocaleString(undefined, {
-    style: "currency",
-    currency: "USD",
-  });
+function formatAmount(amount: number, kind: string, currency: string | null) {
+  const formatted = formatMoney(amount, currency);
   return kind === "income" ? `+${formatted}` : `-${formatted}`;
 }
 
 export default async function TransactionsPage() {
   const supabase = await createClient();
+  const profile = await getProfile();
+  const currency = profile?.currency ?? null;
 
   const [{ data: categories }, { data: transactions }] = await Promise.all([
     supabase.from("categories").select("id, name, kind, color").order("name"),
@@ -76,7 +77,7 @@ export default async function TransactionsPage() {
           <CardTitle>Add a transaction</CardTitle>
         </CardHeader>
         <CardContent>
-          <TransactionForm categories={categories ?? []} />
+          <TransactionForm categories={categories ?? []} currency={currency} />
         </CardContent>
       </Card>
 
@@ -124,7 +125,7 @@ export default async function TransactionsPage() {
                         (tx.kind === "income" ? "text-emerald-600" : "text-foreground")
                       }
                     >
-                      {formatAmount(Number(tx.amount), tx.kind)}
+                      {formatAmount(Number(tx.amount), tx.kind, currency)}
                     </td>
                     <td className="py-2 text-right">
                       <form action={deleteTransaction}>

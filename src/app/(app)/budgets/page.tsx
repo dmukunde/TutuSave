@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/supabase/dal";
 import { getBudgetSpent } from "@/lib/budgets";
 import { deleteBudget } from "@/lib/actions/budgets";
+import { formatMoney } from "@/lib/currency";
 import { BudgetForm } from "@/components/forms/budget-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-function formatCurrency(amount: number) {
-  return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
-}
 
 function periodLabel(periodType: string, startDate: string, endDate: string | null) {
   if (periodType === "monthly") return "This month";
@@ -17,6 +15,8 @@ function periodLabel(periodType: string, startDate: string, endDate: string | nu
 
 export default async function BudgetsPage() {
   const supabase = await createClient();
+  const profile = await getProfile();
+  const currency = profile?.currency ?? null;
 
   const [{ data: categories }, { data: budgets }] = await Promise.all([
     supabase.from("categories").select("id, name, kind"),
@@ -47,7 +47,7 @@ export default async function BudgetsPage() {
           <CardTitle>Add a budget</CardTitle>
         </CardHeader>
         <CardContent>
-          <BudgetForm categories={categories ?? []} />
+          <BudgetForm categories={categories ?? []} currency={currency} />
         </CardContent>
       </Card>
 
@@ -101,13 +101,13 @@ export default async function BudgetsPage() {
 
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>
-                        {formatCurrency(budget.spent)} spent of{" "}
-                        {formatCurrency(budget.amount)}
+                        {formatMoney(budget.spent, currency)} spent of{" "}
+                        {formatMoney(budget.amount, currency)}
                       </span>
                       <span>
                         {isOver
-                          ? `${formatCurrency(budget.spent - budget.amount)} over`
-                          : `${formatCurrency(budget.amount - budget.spent)} remaining`}
+                          ? `${formatMoney(budget.spent - budget.amount, currency)} over`
+                          : `${formatMoney(budget.amount - budget.spent, currency)} remaining`}
                       </span>
                     </div>
                   </li>

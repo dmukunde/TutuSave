@@ -14,7 +14,13 @@ type Category = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function TransactionForm({ categories }: { categories: Category[] }) {
+export function TransactionForm({
+  categories,
+  currency,
+}: {
+  categories: Category[];
+  currency: string | null;
+}) {
   const [state, action, pending] = useActionState(createTransaction, undefined);
 
   return (
@@ -33,7 +39,7 @@ export function TransactionForm({ categories }: { categories: Category[] }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="tx-amount">Amount</Label>
+        <Label htmlFor="tx-amount">Amount{currency ? ` (${currency})` : ""}</Label>
         <Input
           id="tx-amount"
           name="amount"

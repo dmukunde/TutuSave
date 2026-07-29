@@ -14,7 +14,13 @@ type Category = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function BudgetForm({ categories }: { categories: Category[] }) {
+export function BudgetForm({
+  categories,
+  currency,
+}: {
+  categories: Category[];
+  currency: string | null;
+}) {
   const [state, action, pending] = useActionState(createBudget, undefined);
   const [periodType, setPeriodType] = useState("monthly");
 
@@ -40,7 +46,7 @@ export function BudgetForm({ categories }: { categories: Category[] }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="budget-amount">Amount</Label>
+        <Label htmlFor="budget-amount">Amount{currency ? ` (${currency})` : ""}</Label>
         <Input
           id="budget-amount"
           name="amount"
