@@ -89,7 +89,8 @@ export default async function TransactionsPage() {
           {!transactions || transactions.length === 0 ? (
             <p className="text-muted-foreground">No transactions yet.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="py-2 pr-4">Date</th>
@@ -139,6 +140,7 @@ export default async function TransactionsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </CardContent>
       </Card>

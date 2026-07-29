@@ -15,3 +15,16 @@ export type ProfileFormState =
       message?: string;
     }
   | undefined;
+
+export const fullNameSchema = z.object({
+  fullName: z.string().trim().min(1, "Enter your name.").max(100),
+});
+
+export type FullNameFormState =
+  | {
+      errors?: {
+        fullName?: string[];
+      };
+      message?: string;
+    }
+  | undefined;
