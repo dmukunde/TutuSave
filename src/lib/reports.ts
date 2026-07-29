@@ -1,5 +1,28 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type MonthSummary = { income: number; expense: number };
+
+export async function getCurrentMonthSummary(supabase: SupabaseClient): Promise<MonthSummary> {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+    .toISOString()
+    .slice(0, 10);
+
+  const { data } = await supabase
+    .from("transactions")
+    .select("amount, kind")
+    .gte("occurred_at", start);
+
+  let income = 0;
+  let expense = 0;
+  for (const tx of data ?? []) {
+    if (tx.kind === "income") income += Number(tx.amount);
+    else expense += Number(tx.amount);
+  }
+
+  return { income, expense };
+}
+
 function monthKey(dateStr: string) {
   return dateStr.slice(0, 7); // "YYYY-MM"
 }

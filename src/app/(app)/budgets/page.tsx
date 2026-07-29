@@ -1,17 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { getBudgetSpent } from "@/lib/budgets";
+import { getPeriodLabel } from "@/lib/budget-period";
 import { deleteBudget } from "@/lib/actions/budgets";
-import { formatMoney } from "@/lib/currency";
 import { BudgetForm } from "@/components/forms/budget-form";
+import { BudgetProgressItem } from "@/components/budgets/budget-progress-item";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-function periodLabel(periodType: string, startDate: string, endDate: string | null) {
-  if (periodType === "monthly") return "This month";
-  if (periodType === "yearly") return "This year";
-  return `${startDate} → ${endDate ?? "ongoing"}`;
-}
 
 export default async function BudgetsPage() {
   const supabase = await createClient();
@@ -64,52 +59,25 @@ export default async function BudgetsPage() {
                 const category = budget.category_id
                   ? categoryById.get(budget.category_id)
                   : null;
-                const pct = budget.amount > 0 ? (budget.spent / budget.amount) * 100 : 0;
-                const isOver = budget.spent > budget.amount;
-                const isNearThreshold = pct >= budget.alert_threshold_pct;
-                const barColor = isOver
-                  ? "bg-destructive"
-                  : isNearThreshold
-                    ? "bg-amber-500"
-                    : "bg-emerald-500";
 
                 return (
-                  <li key={budget.id} className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-medium">
-                          {category ? category.name : "Overall"}
-                        </span>
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          {periodLabel(budget.period_type, budget.start_date, budget.end_date)}
-                        </span>
-                      </div>
-                      <form action={deleteBudget}>
-                        <input type="hidden" name="id" value={budget.id} />
-                        <Button type="submit" variant="ghost" size="sm">
-                          Delete
-                        </Button>
-                      </form>
-                    </div>
-
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={`h-full ${barColor}`}
-                        style={{ width: `${Math.min(100, pct)}%` }}
-                      />
-                    </div>
-
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>
-                        {formatMoney(budget.spent, currency)} spent of{" "}
-                        {formatMoney(budget.amount, currency)}
-                      </span>
-                      <span>
-                        {isOver
-                          ? `${formatMoney(budget.spent - budget.amount, currency)} over`
-                          : `${formatMoney(budget.amount - budget.spent, currency)} remaining`}
-                      </span>
-                    </div>
+                  <li key={budget.id}>
+                    <BudgetProgressItem
+                      categoryName={category ? category.name : "Overall"}
+                      periodLabel={getPeriodLabel(budget)}
+                      amount={budget.amount}
+                      spent={budget.spent}
+                      alertThresholdPct={budget.alert_threshold_pct}
+                      currency={currency}
+                      actions={
+                        <form action={deleteBudget}>
+                          <input type="hidden" name="id" value={budget.id} />
+                          <Button type="submit" variant="ghost" size="sm">
+                            Delete
+                          </Button>
+                        </form>
+                      }
+                    />
                   </li>
                 );
               })}

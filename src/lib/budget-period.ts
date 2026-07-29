@@ -42,3 +42,9 @@ export function getCurrentPeriodRange(
     end: budget.end_date ?? toDateString(referenceDate),
   };
 }
+
+export function getPeriodLabel(budget: BudgetPeriod): string {
+  if (budget.period_type === "monthly") return "This month";
+  if (budget.period_type === "yearly") return "This year";
+  return `${budget.start_date} → ${budget.end_date ?? "ongoing"}`;
+}
