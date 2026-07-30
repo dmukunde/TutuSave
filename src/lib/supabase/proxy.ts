@@ -36,7 +36,11 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isPublicRoute = publicRoutes.includes(path);
+  // The invite-join page must be visible before login — it's the whole
+  // point of showing "you've been invited" before pushing someone through
+  // signup — so it's a prefix match, not just the exact publicRoutes list.
+  const isPublicRoute =
+    publicRoutes.includes(path) || path.startsWith("/goals/shared/join/");
 
   if (!data.user && !isPublicRoute) {
     const url = request.nextUrl.clone();

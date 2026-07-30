@@ -9,6 +9,15 @@ import {
   type AuthFormState,
 } from "@/lib/validations/auth";
 
+// Only ever redirect to a relative in-app path. A bare "//evil.com" or
+// "https://evil.com" passed as `next` would otherwise be an open redirect.
+function getSafeRedirect(next: FormDataEntryValue | null): string {
+  if (typeof next === "string" && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
+  }
+  return "/dashboard";
+}
+
 export async function signup(
   _prevState: AuthFormState,
   formData: FormData,
@@ -44,7 +53,7 @@ export async function signup(
     return { message: "Check your email to confirm your account." };
   }
 
-  redirect("/dashboard");
+  redirect(getSafeRedirect(formData.get("next")));
 }
 
 export async function login(
@@ -73,7 +82,7 @@ export async function login(
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(getSafeRedirect(formData.get("next")));
 }
 
 export async function logout() {

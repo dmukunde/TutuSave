@@ -217,9 +217,143 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
         Relationships: [];
       };
+      shared_goals: {
+        Row: {
+          id: string;
+          created_by: string;
+          name: string;
+          target_amount: number;
+          currency: string;
+          target_date: string | null;
+          split_type: string;
+          status: string;
+          milestones_reached: number[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          created_by: string;
+          name: string;
+          target_amount: number;
+          currency: string;
+          target_date?: string | null;
+          split_type: string;
+          status?: string;
+          milestones_reached?: number[];
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["shared_goals"]["Insert"]>;
+        Relationships: [];
+      };
+      shared_goal_members: {
+        Row: {
+          id: string;
+          shared_goal_id: string;
+          user_id: string | null;
+          invited_email: string | null;
+          role: string;
+          status: string;
+          split_value: number | null;
+          invite_token: string;
+          invited_at: string;
+          expires_at: string | null;
+          joined_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          shared_goal_id: string;
+          user_id?: string | null;
+          invited_email?: string | null;
+          role?: string;
+          status?: string;
+          split_value?: number | null;
+          invite_token?: string;
+          invited_at?: string;
+          expires_at?: string | null;
+          joined_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["shared_goal_members"]["Insert"]>;
+        Relationships: [];
+      };
+      shared_goal_contributions: {
+        Row: {
+          id: string;
+          shared_goal_id: string;
+          contributed_by: string;
+          amount: number;
+          contributed_at: string;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shared_goal_id: string;
+          contributed_by: string;
+          amount: number;
+          contributed_at?: string;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["shared_goal_contributions"]["Insert"]>;
+        Relationships: [];
+      };
+      shared_goal_activity: {
+        Row: {
+          id: string;
+          shared_goal_id: string;
+          actor_id: string | null;
+          activity_type: string;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shared_goal_id: string;
+          actor_id?: string | null;
+          activity_type: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["shared_goal_activity"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      is_shared_goal_member: {
+        Args: { p_goal_id: string; p_user_id: string };
+        Returns: boolean;
+      };
+      get_shared_goal_invite: {
+        Args: { p_token: string };
+        Returns: {
+          shared_goal_id: string;
+          goal_name: string;
+          invited_by_name: string;
+          invited_email: string | null;
+          member_status: string;
+          expires_at: string | null;
+        }[];
+      };
+      accept_shared_goal_invite: {
+        Args: { p_token: string };
+        Returns: string;
+      };
+      advance_shared_goal_status: {
+        Args: { p_goal_id: string; p_milestones: number[]; p_status: string | null };
+        Returns: undefined;
+      };
+      notify_shared_goal_members: {
+        Args: {
+          p_goal_id: string;
+          p_event_type: string;
+          p_activity_type: string;
+          p_actor_id: string | null;
+          p_payload: Json;
+        };
+        Returns: undefined;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

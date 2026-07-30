@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { getProfile } from "@/lib/supabase/dal";
+import { getProfile, requireUser } from "@/lib/supabase/dal";
 import { createClient } from "@/lib/supabase/server";
 import { getBudgetSpent } from "@/lib/budgets";
 import { getPeriodLabel } from "@/lib/budget-period";
 import { getGoalProgress } from "@/lib/goals";
 import { getCurrentMonthSummary } from "@/lib/reports";
+import { getSharedGoalTotals } from "@/lib/shared-goals";
 import { formatMoney } from "@/lib/currency";
 import { BudgetProgressItem } from "@/components/budgets/budget-progress-item";
 import { GoalProgressItem } from "@/components/goals/goal-progress-item";
+import { SharedGoalCard } from "@/components/goals/shared-goal-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -30,6 +32,7 @@ function formatSignedAmount(amount: number, kind: string, currency: string | nul
 }
 
 export default async function DashboardPage() {
+  const user = await requireUser();
   const supabase = await createClient();
   const profile = await getProfile();
   const currency = profile?.currency ?? null;
@@ -54,7 +57,17 @@ export default async function DashboardPage() {
 
   const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
 
-  const [budgetsWithSpend, goalsWithProgress] = await Promise.all([
+  const { data: sharedMemberships } = await supabase
+    .from("shared_goal_members")
+    .select("shared_goals(id, name, target_amount, currency, target_date)")
+    .eq("status", "active")
+    .eq("user_id", user.id);
+
+  const sharedGoals = (sharedMemberships ?? [])
+    .map((m) => (Array.isArray(m.shared_goals) ? m.shared_goals[0] : m.shared_goals))
+    .filter((g): g is NonNullable<typeof g> => Boolean(g));
+
+  const [budgetsWithSpend, goalsWithProgress, sharedGoalsWithTotals] = await Promise.all([
     Promise.all(
       (budgets ?? []).map(async (budget) => ({
         ...budget,
@@ -66,6 +79,19 @@ export default async function DashboardPage() {
         ...goal,
         contributed: await getGoalProgress(supabase, goal.id),
       })),
+    ),
+    Promise.all(
+      sharedGoals.map(async (goal) => {
+        const [{ total }, { count }] = await Promise.all([
+          getSharedGoalTotals(supabase, goal.id),
+          supabase
+            .from("shared_goal_members")
+            .select("id", { count: "exact", head: true })
+            .eq("shared_goal_id", goal.id)
+            .eq("status", "active"),
+        ]);
+        return { ...goal, totalSaved: total, memberCount: count ?? 1 };
+      }),
     ),
   ]);
 
@@ -171,6 +197,38 @@ export default async function DashboardPage() {
                 </li>
               ))}
             </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Shared goals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {sharedGoalsWithTotals.length === 0 ? (
+            <p className="text-muted-foreground">
+              No shared goals yet.{" "}
+              <Link href="/goals?tab=shared" className="font-medium underline">
+                Start one with someone
+              </Link>
+              .
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {sharedGoalsWithTotals.map((goal) => (
+                <SharedGoalCard
+                  key={goal.id}
+                  id={goal.id}
+                  name={goal.name}
+                  targetAmount={Number(goal.target_amount)}
+                  totalSaved={goal.totalSaved}
+                  currency={goal.currency}
+                  targetDate={goal.target_date}
+                  memberCount={goal.memberCount}
+                />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
