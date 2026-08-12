@@ -317,6 +317,50 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["shared_goal_activity"]["Insert"]>;
         Relationships: [];
       };
+      imported_transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          status: string;
+          amount: number;
+          currency: string;
+          kind: string;
+          description: string;
+          occurred_at: string;
+          card_last4: string | null;
+          source: string;
+          source_message_id: string;
+          transaction_reference: string | null;
+          dedup_signature: string;
+          possible_duplicate_of: string | null;
+          raw_snippet: string;
+          reviewed_transaction_id: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          status?: string;
+          amount: number;
+          currency: string;
+          kind: string;
+          description: string;
+          occurred_at: string;
+          card_last4?: string | null;
+          source?: string;
+          source_message_id: string;
+          transaction_reference?: string | null;
+          dedup_signature: string;
+          possible_duplicate_of?: string | null;
+          raw_snippet: string;
+          reviewed_transaction_id?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["imported_transactions"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

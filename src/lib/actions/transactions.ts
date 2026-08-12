@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/supabase/dal";
-import { emitEvent } from "@/lib/events";
-import { checkBudgetAlerts } from "@/lib/budgets";
+import { recordTransaction } from "@/lib/transactions";
 import {
   transactionSchema,
   type TransactionFormState,
@@ -30,33 +29,15 @@ export async function createTransaction(
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("transactions")
-    .insert({
-      user_id: user.id,
-      category_id: categoryId ?? null,
-      occurred_at: occurredAt,
-      ...rest,
-    })
-    .select("id")
-    .single();
+  const result = await recordTransaction(supabase, user.id, {
+    ...rest,
+    categoryId,
+    occurredAt,
+  });
 
-  if (error) {
-    return { message: error.message };
+  if ("error" in result) {
+    return { message: result.error };
   }
-
-  await emitEvent(supabase, user.id, "transaction.created", {
-    transaction_id: data.id,
-    amount: rest.amount,
-    kind: rest.kind,
-  });
-
-  await checkBudgetAlerts(supabase, user.id, {
-    id: data.id,
-    category_id: categoryId ?? null,
-    kind: rest.kind,
-    amount: rest.amount,
-  });
 
   revalidatePath("/transactions");
   revalidatePath("/budgets");

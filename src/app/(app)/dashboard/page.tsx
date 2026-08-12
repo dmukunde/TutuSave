@@ -37,23 +37,33 @@ export default async function DashboardPage() {
   const profile = await getProfile();
   const currency = profile?.currency ?? null;
 
-  const [monthSummary, { data: categories }, { data: budgets }, { data: goals }, { data: recentTransactions }] =
-    await Promise.all([
-      getCurrentMonthSummary(supabase),
-      supabase.from("categories").select("id, name"),
-      supabase.from("budgets").select("*").order("created_at", { ascending: false }),
-      supabase
-        .from("savings_goals")
-        .select("*")
-        .eq("status", "active")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("transactions")
-        .select("id, amount, kind, description, occurred_at, categories(name, color)")
-        .order("occurred_at", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ]);
+  const [
+    monthSummary,
+    { data: categories },
+    { data: budgets },
+    { data: goals },
+    { data: recentTransactions },
+    { count: pendingImportsCount },
+  ] = await Promise.all([
+    getCurrentMonthSummary(supabase),
+    supabase.from("categories").select("id, name"),
+    supabase.from("budgets").select("*").order("created_at", { ascending: false }),
+    supabase
+      .from("savings_goals")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("transactions")
+      .select("id, amount, kind, description, occurred_at, categories(name, color)")
+      .order("occurred_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("imported_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+  ]);
 
   const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
 
@@ -133,6 +143,24 @@ export default async function DashboardPage() {
           View reports
         </Link>
       </div>
+
+      {Boolean(pendingImportsCount) && (
+        <Card className="border-amber-300 dark:border-amber-800">
+          <CardContent className="flex flex-wrap items-center justify-between gap-2 py-4">
+            <p className="text-sm">
+              <span className="font-medium">{pendingImportsCount}</span> transaction
+              {pendingImportsCount === 1 ? "" : "s"} imported from email{" "}
+              {pendingImportsCount === 1 ? "is" : "are"} waiting for your review.
+            </p>
+            <Link
+              href="/transactions/imports"
+              className="text-sm font-medium underline"
+            >
+              Review now →
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { deleteCategory } from "@/lib/actions/categories";
@@ -18,14 +19,19 @@ export default async function TransactionsPage() {
   const profile = await getProfile();
   const currency = profile?.currency ?? null;
 
-  const [{ data: categories }, { data: transactions }] = await Promise.all([
-    supabase.from("categories").select("id, name, kind, color").order("name"),
-    supabase
-      .from("transactions")
-      .select("id, amount, kind, description, occurred_at, categories(name, color)")
-      .order("occurred_at", { ascending: false })
-      .limit(50),
-  ]);
+  const [{ data: categories }, { data: transactions }, { count: pendingImportsCount }] =
+    await Promise.all([
+      supabase.from("categories").select("id, name, kind, color").order("name"),
+      supabase
+        .from("transactions")
+        .select("id, amount, kind, description, occurred_at, categories(name, color)")
+        .order("occurred_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("imported_transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending"),
+    ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,6 +40,13 @@ export default async function TransactionsPage() {
         <p className="mt-1 text-muted-foreground">
           Log income and expenses, and organize spending with custom categories.
         </p>
+        {Boolean(pendingImportsCount) && (
+          <p className="mt-2 text-sm">
+            <Link href="/transactions/imports" className="font-medium underline">
+              {pendingImportsCount} imported transaction{pendingImportsCount === 1 ? "" : "s"} waiting for review →
+            </Link>
+          </p>
+        )}
       </div>
 
       <Card>
