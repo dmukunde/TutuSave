@@ -1,9 +1,20 @@
 import { getProfile } from "@/lib/supabase/dal";
+import { ensureEmailConnection } from "@/lib/actions/email-connections";
+import { createClient } from "@/lib/supabase/server";
 import { CurrencyForm } from "@/components/forms/currency-form";
+import { EmailAutomationCard } from "@/components/settings/email-automation-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SettingsPage() {
   const profile = await getProfile();
+  const connection = await ensureEmailConnection();
+
+  const supabase = await createClient();
+  const { data: bankRules } = await supabase
+    .from("bank_rules")
+    .select("bank_name, default_currency")
+    .eq("is_active", true)
+    .order("bank_name");
 
   return (
     <div className="flex flex-col gap-6">
@@ -28,6 +39,12 @@ export default async function SettingsPage() {
           <CurrencyForm currentCurrency={profile?.currency ?? null} />
         </CardContent>
       </Card>
+
+      <EmailAutomationCard
+        connection={connection}
+        bankRules={bankRules ?? []}
+        importEmailBase={process.env.IMPORT_EMAIL_BASE ?? null}
+      />
     </div>
   );
 }

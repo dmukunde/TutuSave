@@ -361,6 +361,52 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["imported_transactions"]["Insert"]>;
         Relationships: [];
       };
+      bank_rules: {
+        Row: {
+          id: string;
+          bank_name: string;
+          sender_pattern: string;
+          subject_pattern: string | null;
+          body_regex: string;
+          default_currency: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bank_name: string;
+          sender_pattern: string;
+          subject_pattern?: string | null;
+          body_regex: string;
+          default_currency?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["bank_rules"]["Insert"]>;
+        Relationships: [];
+      };
+      email_connections: {
+        Row: {
+          id: string;
+          user_id: string;
+          method: string;
+          forward_token: string;
+          gmail_email: string | null;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          method?: string;
+          forward_token?: string;
+          gmail_email?: string | null;
+          status?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["email_connections"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
