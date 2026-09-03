@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { AlertTriangle } from "lucide-react";
 import {
   approveImportedTransaction,
   rejectImportedTransaction,
@@ -31,10 +32,11 @@ export function ReviewImportForm({
   const [state, action, pending] = useActionState(approveImportedTransaction, undefined);
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border p-3">
+    <div className="flex flex-col gap-2 rounded-lg border border-automation/20 bg-automation-soft p-3">
       {isPossibleDuplicate && (
-        <p className="text-sm font-medium text-amber-600">
-          ⚠ This looks similar to another transaction you already have. Check before approving.
+        <p className="flex items-center gap-1.5 text-sm font-medium text-automation">
+          <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+          This looks similar to another transaction you already have. Check before approving.
         </p>
       )}
 

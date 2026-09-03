@@ -23,7 +23,7 @@ export default async function ReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Reports</h1>
         <p className="mt-1 text-muted-foreground">
           Spending trends and pace, drawn from your transaction history.
         </p>
@@ -46,7 +46,7 @@ export default async function ReportsPage() {
               <>
                 {" "}
                 —{" "}
-                <span className={paceIsHigher ? "text-amber-600" : "text-emerald-600"}>
+                <span className={paceIsHigher ? "text-warning" : "text-income"}>
                   {formatMoney(Math.abs(paceDelta), currency)}{" "}
                   {paceIsHigher ? "more" : "less"} than last month
                 </span>

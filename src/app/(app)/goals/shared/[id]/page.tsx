@@ -21,8 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const ACTIVITY_LABELS: Record<string, { icon: string; className?: string }> = {
   contribution_added: { icon: "💰" },
   member_joined: { icon: "👋" },
-  milestone_reached: { icon: "🎉", className: "bg-amber-50 dark:bg-amber-900/20" },
-  goal_completed: { icon: "🏆", className: "bg-emerald-50 dark:bg-emerald-900/20" },
+  milestone_reached: { icon: "🎉", className: "bg-warning-soft" },
+  goal_completed: { icon: "🏆", className: "bg-income-soft" },
 };
 
 function activityText(
@@ -59,7 +59,7 @@ export default async function SharedGoalDetailPage({
   if (!goal) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Shared goal</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Shared goal</h1>
         <p className="text-muted-foreground">
           This goal doesn&apos;t exist, or you&apos;re not a member of it.{" "}
           <Link href="/goals?tab=shared" className="font-medium underline">
@@ -113,7 +113,7 @@ export default async function SharedGoalDetailPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{goal.name}</h1>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">{goal.name}</h1>
           <p className="mt-1 text-muted-foreground">
             {goal.currency} · {activeMembers.length} member
             {activeMembers.length === 1 ? "" : "s"}
@@ -135,7 +135,7 @@ export default async function SharedGoalDetailPage({
         <CardContent className="flex flex-col gap-3">
           <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className={`h-full ${pct >= 100 ? "bg-emerald-500" : "bg-primary"}`}
+              className={`h-full rounded-full ${pct >= 100 ? "bg-income" : "bg-savings"}`}
               style={{ width: `${Math.min(100, pct)}%` }}
             />
           </div>
@@ -209,7 +209,7 @@ export default async function SharedGoalDetailPage({
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full bg-primary"
+                    className="h-full rounded-full bg-savings"
                     style={{ width: `${Math.min(100, sharePct)}%` }}
                   />
                 </div>

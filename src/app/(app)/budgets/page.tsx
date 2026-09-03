@@ -30,7 +30,7 @@ export default async function BudgetsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Budgets</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Budgets</h1>
         <p className="mt-1 text-muted-foreground">
           Set spending limits per category or overall, and track how much you
           have left in the current period.

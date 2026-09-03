@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrendingUp, TrendingDown, Scale, Wallet, Target } from "lucide-react";
 import { getProfile, requireUser } from "@/lib/supabase/dal";
 import { createClient } from "@/lib/supabase/server";
 import { getBudgetSpent } from "@/lib/budgets";
@@ -10,26 +11,11 @@ import { formatMoney } from "@/lib/currency";
 import { BudgetProgressItem } from "@/components/budgets/budget-progress-item";
 import { GoalProgressItem } from "@/components/goals/goal-progress-item";
 import { SharedGoalCard } from "@/components/goals/shared-goal-card";
+import { SummaryCard } from "@/components/dashboard/summary-card";
+import { ImportBanner } from "@/components/dashboard/import-banner";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { TransactionList } from "@/components/transactions/transaction-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
-
-function SummaryCard({ label, value, tone }: { label: string; value: string; tone?: "negative" }) {
-  return (
-    <Card>
-      <CardContent className="flex flex-col gap-1 py-4">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={"text-xl font-semibold " + (tone === "negative" ? "text-destructive" : "")}>
-          {value}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function formatSignedAmount(amount: number, kind: string, currency: string | null) {
-  const formatted = formatMoney(amount, currency);
-  return kind === "income" ? `+${formatted}` : `-${formatted}`;
-}
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -107,60 +93,55 @@ export default async function DashboardPage() {
 
   const remaining = monthSummary.income - monthSummary.expense;
 
+  const normalizedTransactions = (recentTransactions ?? []).map((tx) => ({
+    ...tx,
+    categories: Array.isArray(tx.categories) ? (tx.categories[0] ?? null) : tx.categories,
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="mt-1 text-muted-foreground">Your finances at a glance.</p>
       </div>
 
+      <ImportBanner pendingCount={pendingImportsCount} />
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <SummaryCard label="Income this month" value={formatMoney(monthSummary.income, currency)} />
+        <SummaryCard
+          label="Income this month"
+          value={formatMoney(monthSummary.income, currency)}
+          icon={TrendingUp}
+          tone="income"
+        />
         <SummaryCard
           label="Expenses this month"
           value={formatMoney(monthSummary.expense, currency)}
+          icon={TrendingDown}
+          tone="expense"
         />
         <SummaryCard
           label="Remaining balance"
           value={formatMoney(remaining, currency)}
-          tone={remaining < 0 ? "negative" : undefined}
+          icon={Scale}
+          tone="primary"
+          negative={remaining < 0}
         />
-        <SummaryCard label="Active budgets" value={String(budgetsWithSpend.length)} />
-        <SummaryCard label="Active goals" value={String(goalsWithProgress.length)} />
+        <SummaryCard
+          label="Active budgets"
+          value={String(budgetsWithSpend.length)}
+          icon={Wallet}
+          tone="warning"
+        />
+        <SummaryCard
+          label="Active goals"
+          value={String(goalsWithProgress.length)}
+          icon={Target}
+          tone="savings"
+        />
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Link href="/transactions" className={buttonVariants({ size: "sm" })}>
-          Add transaction
-        </Link>
-        <Link href="/budgets" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Create budget
-        </Link>
-        <Link href="/goals" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Create savings goal
-        </Link>
-        <Link href="/reports" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          View reports
-        </Link>
-      </div>
-
-      {Boolean(pendingImportsCount) && (
-        <Card className="border-amber-300 dark:border-amber-800">
-          <CardContent className="flex flex-wrap items-center justify-between gap-2 py-4">
-            <p className="text-sm">
-              <span className="font-medium">{pendingImportsCount}</span> transaction
-              {pendingImportsCount === 1 ? "" : "s"} imported from email{" "}
-              {pendingImportsCount === 1 ? "is" : "are"} waiting for your review.
-            </p>
-            <Link
-              href="/transactions/imports"
-              className="text-sm font-medium underline"
-            >
-              Review now →
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+      <QuickActions />
 
       <Card>
         <CardHeader>
@@ -170,7 +151,7 @@ export default async function DashboardPage() {
           {budgetsWithSpend.length === 0 ? (
             <p className="text-muted-foreground">
               No budgets yet.{" "}
-              <Link href="/budgets" className="font-medium underline">
+              <Link href="/budgets" className="font-medium text-primary underline">
                 Create one
               </Link>
               .
@@ -206,7 +187,7 @@ export default async function DashboardPage() {
           {goalsWithProgress.length === 0 ? (
             <p className="text-muted-foreground">
               No active savings goals.{" "}
-              <Link href="/goals" className="font-medium underline">
+              <Link href="/goals" className="font-medium text-primary underline">
                 Create one
               </Link>
               .
@@ -237,7 +218,7 @@ export default async function DashboardPage() {
           {sharedGoalsWithTotals.length === 0 ? (
             <p className="text-muted-foreground">
               No shared goals yet.{" "}
-              <Link href="/goals?tab=shared" className="font-medium underline">
+              <Link href="/goals?tab=shared" className="font-medium text-primary underline">
                 Start one with someone
               </Link>
               .
@@ -266,66 +247,20 @@ export default async function DashboardPage() {
           <CardTitle>Recent transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          {!recentTransactions || recentTransactions.length === 0 ? (
+          {normalizedTransactions.length === 0 ? (
             <p className="text-muted-foreground">
               No transactions yet.{" "}
-              <Link href="/transactions" className="font-medium underline">
+              <Link href="/transactions" className="font-medium text-primary underline">
                 Add one
               </Link>
               .
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[480px] text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="py-2 pr-4">Date</th>
-                    <th className="py-2 pr-4">Description</th>
-                    <th className="py-2 pr-4">Category</th>
-                    <th className="py-2 pr-4 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTransactions.map((tx) => {
-                    const category = Array.isArray(tx.categories)
-                      ? tx.categories[0]
-                      : tx.categories;
-
-                    return (
-                      <tr key={tx.id} className="border-b last:border-0">
-                        <td className="py-2 pr-4 whitespace-nowrap">{tx.occurred_at}</td>
-                        <td className="py-2 pr-4">{tx.description || "—"}</td>
-                        <td className="py-2 pr-4">
-                          {category ? (
-                            <span className="inline-flex items-center gap-1.5">
-                              <span
-                                className="size-2 rounded-full"
-                                style={{ backgroundColor: category.color ?? undefined }}
-                              />
-                              {category.name}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">Uncategorized</span>
-                          )}
-                        </td>
-                        <td
-                          className={
-                            "py-2 pr-4 text-right font-medium whitespace-nowrap " +
-                            (tx.kind === "income" ? "text-emerald-600" : "text-foreground")
-                          }
-                        >
-                          {formatSignedAmount(Number(tx.amount), tx.kind, currency)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <TransactionList transactions={normalizedTransactions} currency={currency} />
           )}
-          {recentTransactions && recentTransactions.length > 0 && (
+          {normalizedTransactions.length > 0 && (
             <div className="mt-4">
-              <Link href="/transactions" className="text-sm font-medium underline">
+              <Link href="/transactions" className="text-sm font-medium text-primary underline">
                 View all transactions →
               </Link>
             </div>

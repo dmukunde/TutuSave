@@ -8,7 +8,7 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-muted-foreground">
           Manage how TutuSave displays your money.
         </p>
@@ -20,7 +20,7 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {!profile?.currency && (
-            <p className="text-sm text-amber-600">
+            <p className="text-sm text-warning">
               You haven&apos;t chosen a currency yet — amounts show as plain
               numbers until you do.
             </p>

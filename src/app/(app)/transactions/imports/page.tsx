@@ -19,7 +19,7 @@ export default async function ReviewImportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Review imports</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Review imports</h1>
         <p className="mt-1 text-muted-foreground">
           Transactions detected from your bank emails, waiting for your confirmation
           before they count toward your budgets and reports.

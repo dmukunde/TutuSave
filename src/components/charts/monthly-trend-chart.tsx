@@ -13,11 +13,12 @@ import {
 import { formatMoney } from "@/lib/currency";
 import type { MonthlyTrendPoint } from "@/lib/reports";
 
-// Validated pair (dataviz skill: validate_palette.js, CVD ΔE 27.1 deutan / 31.8
-// normal, light mode) — income and expense read apart for colorblind viewers,
-// and both are also directly labeled via the legend + tooltip, not color-only.
-const INCOME_COLOR = "#10b981";
-const EXPENSE_COLOR = "#6366f1";
+// Matches the app-wide income/expense accent tokens (--income / --expense in
+// globals.css). Lightness and chroma are deliberately kept apart (not just
+// hue) so the two bars stay distinguishable for colorblind viewers; both are
+// also directly labeled via the legend + tooltip, not color-only.
+const INCOME_COLOR = "#419363";
+const EXPENSE_COLOR = "#d86357";
 
 export function MonthlyTrendChart({
   data,

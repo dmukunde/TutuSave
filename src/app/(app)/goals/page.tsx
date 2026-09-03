@@ -159,7 +159,7 @@ export default async function GoalsPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Goals</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Goals</h1>
         <p className="mt-1 text-muted-foreground">
           Personal savings targets, and goals you&apos;re saving toward with other people.
         </p>
@@ -171,7 +171,7 @@ export default async function GoalsPage({
           className={
             "px-3 py-2 text-sm font-medium " +
             (activeTab === "personal"
-              ? "border-b-2 border-foreground text-foreground"
+              ? "border-b-2 border-savings text-savings"
               : "text-muted-foreground hover:text-foreground")
           }
         >
@@ -182,7 +182,7 @@ export default async function GoalsPage({
           className={
             "px-3 py-2 text-sm font-medium " +
             (activeTab === "shared"
-              ? "border-b-2 border-foreground text-foreground"
+              ? "border-b-2 border-savings text-savings"
               : "text-muted-foreground hover:text-foreground")
           }
         >

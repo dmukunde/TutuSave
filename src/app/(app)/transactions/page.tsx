@@ -1,18 +1,14 @@
-import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { deleteCategory } from "@/lib/actions/categories";
 import { deleteTransaction } from "@/lib/actions/transactions";
-import { formatMoney } from "@/lib/currency";
 import { CategoryForm } from "@/components/forms/category-form";
 import { TransactionForm } from "@/components/forms/transaction-form";
+import { ImportBanner } from "@/components/dashboard/import-banner";
+import { TransactionList } from "@/components/transactions/transaction-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-function formatAmount(amount: number, kind: string, currency: string | null) {
-  const formatted = formatMoney(amount, currency);
-  return kind === "income" ? `+${formatted}` : `-${formatted}`;
-}
 
 export default async function TransactionsPage() {
   const supabase = await createClient();
@@ -33,21 +29,21 @@ export default async function TransactionsPage() {
         .eq("status", "pending"),
     ]);
 
+  const normalizedTransactions = (transactions ?? []).map((tx) => ({
+    ...tx,
+    categories: Array.isArray(tx.categories) ? (tx.categories[0] ?? null) : tx.categories,
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Transactions</h1>
         <p className="mt-1 text-muted-foreground">
           Log income and expenses, and organize spending with custom categories.
         </p>
-        {Boolean(pendingImportsCount) && (
-          <p className="mt-2 text-sm">
-            <Link href="/transactions/imports" className="font-medium underline">
-              {pendingImportsCount} imported transaction{pendingImportsCount === 1 ? "" : "s"} waiting for review →
-            </Link>
-          </p>
-        )}
       </div>
+
+      <ImportBanner pendingCount={pendingImportsCount} />
 
       <Card>
         <CardHeader>
@@ -99,61 +95,26 @@ export default async function TransactionsPage() {
           <CardTitle>Recent transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          {!transactions || transactions.length === 0 ? (
+          {normalizedTransactions.length === 0 ? (
             <p className="text-muted-foreground">No transactions yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Description</th>
-                  <th className="py-2 pr-4">Category</th>
-                  <th className="py-2 pr-4 text-right">Amount</th>
-                  <th className="py-2" />
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((tx) => (
-                  <tr key={tx.id} className="border-b last:border-0">
-                    <td className="py-2 pr-4 whitespace-nowrap">{tx.occurred_at}</td>
-                    <td className="py-2 pr-4">{tx.description || "—"}</td>
-                    <td className="py-2 pr-4">
-                      {tx.categories ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <span
-                            className="size-2 rounded-full"
-                            style={{
-                              backgroundColor: tx.categories.color ?? undefined,
-                            }}
-                          />
-                          {tx.categories.name}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">Uncategorized</span>
-                      )}
-                    </td>
-                    <td
-                      className={
-                        "py-2 pr-4 text-right font-medium whitespace-nowrap " +
-                        (tx.kind === "income" ? "text-emerald-600" : "text-foreground")
-                      }
-                    >
-                      {formatAmount(Number(tx.amount), tx.kind, currency)}
-                    </td>
-                    <td className="py-2 text-right">
-                      <form action={deleteTransaction}>
-                        <input type="hidden" name="id" value={tx.id} />
-                        <Button type="submit" variant="ghost" size="sm">
-                          Delete
-                        </Button>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            </div>
+            <TransactionList
+              transactions={normalizedTransactions}
+              currency={currency}
+              actions={(tx) => (
+                <form action={deleteTransaction}>
+                  <input type="hidden" name="id" value={tx.id} />
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Delete transaction: ${tx.description || "untitled"}`}
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                  </Button>
+                </form>
+              )}
+            />
           )}
         </CardContent>
       </Card>

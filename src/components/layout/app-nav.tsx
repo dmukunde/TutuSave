@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Home, ArrowLeftRight, Wallet, Target, Menu, X } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
+import { LogoMark } from "@/components/brand/logo-mark";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -38,21 +39,27 @@ export function AppNav({ email }: { email: string | undefined }) {
   return (
     <>
       <header
-        className="sticky top-0 z-40 flex items-center justify-between border-b bg-background px-4 py-3 sm:px-6 sm:py-4"
+        className="sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-3 shadow-xs sm:px-6 sm:py-4"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
       >
       <div className="flex items-center gap-6">
-        <span className="font-semibold tracking-tight">TutuSave</span>
-        <nav className="hidden gap-4 sm:flex">
+        <span className="flex items-center gap-2">
+          <LogoMark className="size-7" />
+          <span className="font-heading text-lg font-semibold tracking-tight">
+            TutuSave
+          </span>
+        </span>
+        <nav className="hidden gap-1 sm:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={pathname === link.href ? "page" : undefined}
               className={
-                pathname === link.href
-                  ? "text-sm font-medium text-foreground"
-                  : "text-sm text-muted-foreground hover:text-foreground"
+                "rounded-lg px-2.5 py-1.5 text-sm transition-colors " +
+                (pathname === link.href
+                  ? "bg-primary/10 font-medium text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground")
               }
             >
               {link.label}
@@ -88,9 +95,12 @@ export function AppNav({ email }: { email: string | undefined }) {
             className="fixed inset-y-0 left-0 z-50 flex w-3/4 max-w-xs flex-col bg-background shadow-lg"
           >
             <div className="flex items-center justify-between border-b p-4">
-              <div>
-                <p className="font-semibold tracking-tight">TutuSave</p>
-                {email && <p className="text-xs text-muted-foreground">{email}</p>}
+              <div className="flex items-center gap-2">
+                <LogoMark className="size-7" />
+                <div>
+                  <p className="font-heading font-semibold tracking-tight">TutuSave</p>
+                  {email && <p className="text-xs text-muted-foreground">{email}</p>}
+                </div>
               </div>
               <button
                 type="button"
@@ -110,9 +120,9 @@ export function AppNav({ email }: { email: string | undefined }) {
                   onClick={closeMenu}
                   aria-current={pathname === link.href ? "page" : undefined}
                   className={
-                    "rounded-md px-3 py-2 text-sm " +
+                    "rounded-lg px-3 py-2.5 text-sm " +
                     (pathname === link.href
-                      ? "bg-muted font-medium text-foreground"
+                      ? "bg-primary/10 font-medium text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground")
                   }
                 >
@@ -139,7 +149,7 @@ export function AppNav({ email }: { email: string | undefined }) {
 
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-card shadow-[0_-1px_8px_-2px_rgb(0_0_0_/_0.08)] sm:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {bottomNavLinks.map((link) => {
@@ -151,8 +161,8 @@ export function AppNav({ email }: { email: string | undefined }) {
               href={link.href}
               aria-current={active ? "page" : undefined}
               className={
-                "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs " +
-                (active ? "font-medium text-foreground" : "text-muted-foreground")
+                "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs transition-colors " +
+                (active ? "font-medium text-primary" : "text-muted-foreground")
               }
             >
               <Icon className="size-5" aria-hidden="true" />
@@ -165,8 +175,8 @@ export function AppNav({ email }: { email: string | undefined }) {
           aria-label="More"
           onClick={() => setOpen(true)}
           className={
-            "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs " +
-            (open ? "font-medium text-foreground" : "text-muted-foreground")
+            "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs transition-colors " +
+            (open ? "font-medium text-primary" : "text-muted-foreground")
           }
         >
           <Menu className="size-5" aria-hidden="true" />

@@ -9,7 +9,7 @@ export default async function ProfilePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Profile</h1>
         <p className="mt-1 text-muted-foreground">Your account details.</p>
       </div>
 
