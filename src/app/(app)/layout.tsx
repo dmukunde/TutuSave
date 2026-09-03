@@ -17,7 +17,7 @@ export default async function AppShellLayout({
       <AppNav email={user.email} />
 
       {!profile?.currency && (
-        <div className="bg-amber-100 px-6 py-2 text-center text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+        <div className="bg-warning-soft px-6 py-2 text-center text-sm text-warning">
           Choose your default currency in{" "}
           <Link href="/settings" className="font-medium underline">
             Settings
@@ -26,9 +26,9 @@ export default async function AppShellLayout({
         </div>
       )}
 
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-4 sm:p-6">{children}</main>
 
-      <footer className="border-t px-6 py-3 text-center text-xs text-muted-foreground">
+      <footer className="border-t px-6 pt-3 pb-[calc(4.5rem+env(safe-area-inset-bottom))] text-center text-xs text-muted-foreground sm:pb-3">
         Build {build.commit} · {build.env}
       </footer>
     </div>

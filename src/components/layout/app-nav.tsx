@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Home, ArrowLeftRight, Wallet, Target, Menu, X } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 
 const links = [
@@ -17,6 +17,16 @@ const links = [
 
 const drawerLinks = [...links, { href: "/profile", label: "Profile" }];
 
+// Primary destinations for the persistent mobile bottom tab bar. "More"
+// (below) opens the same drawer as the rest of the links, so it isn't
+// duplicated here.
+const bottomNavLinks = [
+  { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
+  { href: "/budgets", label: "Budgets", icon: Wallet },
+  { href: "/goals", label: "Goals", icon: Target },
+];
+
 export function AppNav({ email }: { email: string | undefined }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -26,7 +36,11 @@ export function AppNav({ email }: { email: string | undefined }) {
   }
 
   return (
-    <header className="relative flex items-center justify-between border-b bg-background px-4 py-3 sm:px-6 sm:py-4">
+    <>
+      <header
+        className="sticky top-0 z-40 flex items-center justify-between border-b bg-background px-4 py-3 sm:px-6 sm:py-4"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
+      >
       <div className="flex items-center gap-6">
         <span className="font-semibold tracking-tight">TutuSave</span>
         <nav className="hidden gap-4 sm:flex">
@@ -57,15 +71,6 @@ export function AppNav({ email }: { email: string | undefined }) {
             Log out
           </button>
         </form>
-
-        <button
-          type="button"
-          aria-label="Open navigation menu"
-          onClick={() => setOpen(true)}
-          className="inline-flex size-9 items-center justify-center rounded-lg border border-input sm:hidden"
-        >
-          <Menu className="size-5" aria-hidden="true" />
-        </button>
       </div>
 
       {open && (
@@ -130,6 +135,44 @@ export function AppNav({ email }: { email: string | undefined }) {
           </div>
         </>
       )}
-    </header>
+      </header>
+
+      <nav
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background sm:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {bottomNavLinks.map((link) => {
+          const active = pathname.startsWith(link.href);
+          const Icon = link.icon;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+              className={
+                "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs " +
+                (active ? "font-medium text-foreground" : "text-muted-foreground")
+              }
+            >
+              <Icon className="size-5" aria-hidden="true" />
+              {link.label}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          aria-label="More"
+          onClick={() => setOpen(true)}
+          className={
+            "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs " +
+            (open ? "font-medium text-foreground" : "text-muted-foreground")
+          }
+        >
+          <Menu className="size-5" aria-hidden="true" />
+          More
+        </button>
+      </nav>
+    </>
   );
 }
