@@ -16,14 +16,22 @@ export async function createBudget(
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
     alertThresholdPct: formData.get("alertThresholdPct"),
+    excludeFromOverall: formData.get("excludeFromOverall"),
   });
 
   if (!validatedFields.success) {
     return { errors: validatedFields.error.flatten().fieldErrors };
   }
 
-  const { categoryId, periodType, startDate, endDate, alertThresholdPct, amount } =
-    validatedFields.data;
+  const {
+    categoryId,
+    periodType,
+    startDate,
+    endDate,
+    alertThresholdPct,
+    amount,
+    excludeFromOverall,
+  } = validatedFields.data;
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -35,6 +43,8 @@ export async function createBudget(
     start_date: startDate,
     end_date: endDate ?? null,
     alert_threshold_pct: alertThresholdPct,
+    // Only meaningful for category budgets; an overall budget can't be one-off.
+    exclude_from_overall: categoryId ? excludeFromOverall : false,
   });
 
   if (error) {
@@ -42,6 +52,28 @@ export async function createBudget(
   }
 
   revalidatePath("/budgets");
+  revalidatePath("/dashboard");
+}
+
+// Flips an existing category budget between "one-off" (separate from the
+// Overall budget) and counted-in-Overall.
+export async function setBudgetOneOff(formData: FormData) {
+  const id = formData.get("id");
+  const value = formData.get("value");
+  if (typeof id !== "string" || (value !== "true" && value !== "false")) return;
+
+  const user = await requireUser();
+  const supabase = await createClient();
+
+  await supabase
+    .from("budgets")
+    .update({ exclude_from_overall: value === "true" })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .not("category_id", "is", null);
+
+  revalidatePath("/budgets");
+  revalidatePath("/dashboard");
 }
 
 export async function deleteBudget(formData: FormData) {

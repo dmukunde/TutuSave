@@ -171,6 +171,7 @@ export default async function DashboardPage() {
                     spent={budget.spent}
                     alertThresholdPct={budget.alert_threshold_pct}
                     currency={currency}
+                    isOneOff={budget.exclude_from_overall}
                   />
                 </li>
               ))}

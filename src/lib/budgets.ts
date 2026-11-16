@@ -4,9 +4,23 @@ import { emitEvent } from "@/lib/events";
 
 type BudgetLike = BudgetPeriod & { category_id: string | null };
 
+// Category ids belonging to one-off budgets (exclude_from_overall = true).
+// Expenses in these categories are tracked by their own budget and don't
+// count toward any "overall" budget.
+async function getOneOffCategoryIds(supabase: SupabaseClient): Promise<string[]> {
+  const { data } = await supabase
+    .from("budgets")
+    .select("category_id")
+    .eq("exclude_from_overall", true)
+    .not("category_id", "is", null);
+
+  return (data ?? []).map((row) => row.category_id as string);
+}
+
 // Sums expense transactions for a budget's current period. A budget with no
-// category (an "overall" budget) counts every expense; a category budget
-// only counts expenses in that category.
+// category (an "overall" budget) counts every expense except those in
+// one-off categories; a category budget only counts expenses in that
+// category.
 export async function getBudgetSpent(
   supabase: SupabaseClient,
   budget: BudgetLike,
@@ -23,6 +37,13 @@ export async function getBudgetSpent(
 
   if (budget.category_id) {
     query = query.eq("category_id", budget.category_id);
+  } else {
+    const oneOffIds = await getOneOffCategoryIds(supabase);
+    if (oneOffIds.length > 0) {
+      // Plain NOT IN would also drop uncategorized (NULL) expenses, which
+      // must still count toward the overall budget.
+      query = query.or(`category_id.is.null,category_id.not.in.(${oneOffIds.join(",")})`);
+    }
   }
 
   if (options.excludeTransactionId) {
@@ -46,11 +67,25 @@ export async function checkBudgetAlerts(
 
   const { data: budgets } = await supabase
     .from("budgets")
-    .select("id, category_id, amount, period_type, start_date, end_date, alert_threshold_pct")
+    .select(
+      "id, category_id, amount, period_type, start_date, end_date, alert_threshold_pct, exclude_from_overall",
+    )
     .eq("user_id", userId);
 
+  const oneOffCategoryIds = new Set(
+    (budgets ?? [])
+      .filter((budget) => budget.exclude_from_overall && budget.category_id)
+      .map((budget) => budget.category_id as string),
+  );
+  const isOneOffExpense =
+    transaction.category_id !== null && oneOffCategoryIds.has(transaction.category_id);
+
+  // An overall budget is only affected by this expense if its category
+  // isn't a one-off one.
   const relevant = (budgets ?? []).filter(
-    (budget) => budget.category_id === transaction.category_id || budget.category_id === null,
+    (budget) =>
+      budget.category_id === transaction.category_id ||
+      (budget.category_id === null && !isOneOffExpense),
   );
 
   for (const budget of relevant) {

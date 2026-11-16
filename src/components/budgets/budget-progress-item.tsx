@@ -8,6 +8,7 @@ export function BudgetProgressItem({
   spent,
   alertThresholdPct,
   currency,
+  isOneOff = false,
   actions,
 }: {
   categoryName: string;
@@ -16,6 +17,7 @@ export function BudgetProgressItem({
   spent: number;
   alertThresholdPct: number;
   currency: string | null;
+  isOneOff?: boolean;
   actions?: React.ReactNode;
 }) {
   const pct = amount > 0 ? (spent / amount) * 100 : 0;
@@ -44,6 +46,11 @@ export function BudgetProgressItem({
           <div>
             <div className="flex flex-wrap items-center gap-1.5">
               <p className="font-heading text-base leading-tight font-semibold">{categoryName}</p>
+              {isOneOff && (
+                <span className="rounded-full bg-savings-soft px-2 py-0.5 text-[0.7rem] font-medium text-savings">
+                  One-off
+                </span>
+              )}
               {(isOver || isNearThreshold) && (
                 <span className={`rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${badgeClasses}`}>
                   {isOver ? "Over budget" : "Near limit"}

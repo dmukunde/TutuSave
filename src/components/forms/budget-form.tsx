@@ -23,6 +23,7 @@ export function BudgetForm({
 }) {
   const [state, action, pending] = useActionState(createBudget, undefined);
   const [periodType, setPeriodType] = useState("monthly");
+  const [categoryId, setCategoryId] = useState("");
 
   return (
     <form action={action} className="flex flex-wrap items-end gap-3">
@@ -31,7 +32,8 @@ export function BudgetForm({
         <select
           id="budget-category"
           name="categoryId"
-          defaultValue=""
+          value={categoryId}
+          onChange={(event) => setCategoryId(event.target.value)}
           className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30"
         >
           <option value="">Overall (all spending)</option>
@@ -112,6 +114,24 @@ export function BudgetForm({
           className="w-24"
         />
       </div>
+
+      {categoryId && (
+        <label
+          htmlFor="budget-one-off"
+          className="flex w-full items-start gap-2 text-sm text-muted-foreground"
+        >
+          <input
+            id="budget-one-off"
+            name="excludeFromOverall"
+            type="checkbox"
+            className="mt-0.5 size-4"
+          />
+          <span>
+            <span className="font-medium text-foreground">One-off budget</span> — spending in
+            this category won&apos;t count toward your Overall budget.
+          </span>
+        </label>
+      )}
 
       <Button type="submit" disabled={pending}>
         {pending ? "Adding…" : "Add budget"}

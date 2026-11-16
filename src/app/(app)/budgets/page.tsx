@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { getBudgetSpent } from "@/lib/budgets";
 import { getPeriodLabel } from "@/lib/budget-period";
-import { deleteBudget } from "@/lib/actions/budgets";
+import { deleteBudget, setBudgetOneOff } from "@/lib/actions/budgets";
 import { BudgetForm } from "@/components/forms/budget-form";
 import { BudgetProgressItem } from "@/components/budgets/budget-progress-item";
 import { Button } from "@/components/ui/button";
@@ -69,13 +69,29 @@ export default async function BudgetsPage() {
                       spent={budget.spent}
                       alertThresholdPct={budget.alert_threshold_pct}
                       currency={currency}
+                      isOneOff={budget.exclude_from_overall}
                       actions={
-                        <form action={deleteBudget}>
-                          <input type="hidden" name="id" value={budget.id} />
-                          <Button type="submit" variant="ghost" size="sm">
-                            Delete
-                          </Button>
-                        </form>
+                        <div className="flex items-center">
+                          {category && (
+                            <form action={setBudgetOneOff}>
+                              <input type="hidden" name="id" value={budget.id} />
+                              <input
+                                type="hidden"
+                                name="value"
+                                value={budget.exclude_from_overall ? "false" : "true"}
+                              />
+                              <Button type="submit" variant="ghost" size="sm">
+                                {budget.exclude_from_overall ? "Count in Overall" : "Make one-off"}
+                              </Button>
+                            </form>
+                          )}
+                          <form action={deleteBudget}>
+                            <input type="hidden" name="id" value={budget.id} />
+                            <Button type="submit" variant="ghost" size="sm">
+                              Delete
+                            </Button>
+                          </form>
+                        </div>
                       }
                     />
                   </li>

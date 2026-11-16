@@ -19,6 +19,12 @@ export const budgetSchema = z
       .int()
       .min(1, "Must be between 1 and 100.")
       .max(100, "Must be between 1 and 100."),
+    // Checkbox: absent from FormData (null) when unchecked.
+    excludeFromOverall: z
+      .string()
+      .nullable()
+      .optional()
+      .transform((value) => value === "on"),
   })
   .refine((data) => data.periodType !== "custom" || !!data.endDate, {
     message: "Custom budgets need an end date.",

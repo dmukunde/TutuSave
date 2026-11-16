@@ -108,6 +108,7 @@ export type Database = {
           end_date: string | null;
           rollover: boolean;
           alert_threshold_pct: number;
+          exclude_from_overall: boolean;
           created_at: string;
         };
         Insert: {
@@ -120,6 +121,7 @@ export type Database = {
           end_date?: string | null;
           rollover?: boolean;
           alert_threshold_pct?: number;
+          exclude_from_overall?: boolean;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["budgets"]["Insert"]>;
