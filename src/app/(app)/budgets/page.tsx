@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/supabase/dal";
 import { getBudgetSpent } from "@/lib/budgets";
 import { getPeriodLabel } from "@/lib/budget-period";
+import { assignBudgetColors } from "@/lib/budget-colors";
 import { deleteBudget, setBudgetOneOff } from "@/lib/actions/budgets";
 import { BudgetForm } from "@/components/forms/budget-form";
 import { BudgetProgressItem } from "@/components/budgets/budget-progress-item";
@@ -19,6 +20,7 @@ export default async function BudgetsPage() {
   ]);
 
   const categoryById = new Map((categories ?? []).map((c) => [c.id, c]));
+  const budgetColors = assignBudgetColors(budgets ?? []);
 
   const budgetsWithSpend = await Promise.all(
     (budgets ?? []).map(async (budget) => ({
@@ -70,6 +72,7 @@ export default async function BudgetsPage() {
                       alertThresholdPct={budget.alert_threshold_pct}
                       currency={currency}
                       isOneOff={budget.exclude_from_overall}
+                      accentColor={budgetColors.get(budget.id)}
                       actions={
                         <div className="flex items-center">
                           {category && (

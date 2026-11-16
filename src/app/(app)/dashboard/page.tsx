@@ -4,6 +4,7 @@ import { getProfile, requireUser } from "@/lib/supabase/dal";
 import { createClient } from "@/lib/supabase/server";
 import { getBudgetSpent } from "@/lib/budgets";
 import { getPeriodLabel } from "@/lib/budget-period";
+import { assignBudgetColors } from "@/lib/budget-colors";
 import { getGoalProgress } from "@/lib/goals";
 import { getCurrentMonthSummary } from "@/lib/reports";
 import { getSharedGoalTotals } from "@/lib/shared-goals";
@@ -52,6 +53,7 @@ export default async function DashboardPage() {
   ]);
 
   const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
+  const budgetColors = assignBudgetColors(budgets ?? []);
 
   const { data: sharedMemberships } = await supabase
     .from("shared_goal_members")
@@ -172,6 +174,7 @@ export default async function DashboardPage() {
                     alertThresholdPct={budget.alert_threshold_pct}
                     currency={currency}
                     isOneOff={budget.exclude_from_overall}
+                    accentColor={budgetColors.get(budget.id)}
                   />
                 </li>
               ))}

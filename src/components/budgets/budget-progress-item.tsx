@@ -9,6 +9,7 @@ export function BudgetProgressItem({
   alertThresholdPct,
   currency,
   isOneOff = false,
+  accentColor,
   actions,
 }: {
   categoryName: string;
@@ -18,14 +19,20 @@ export function BudgetProgressItem({
   alertThresholdPct: number;
   currency: string | null;
   isOneOff?: boolean;
+  // This budget's own identity colour (see lib/budget-colors.ts). Shown
+  // while the budget is healthy; near-limit/over-budget override it with
+  // amber/red so warnings stay obvious.
+  accentColor?: string;
   actions?: React.ReactNode;
 }) {
   const pct = amount > 0 ? (spent / amount) * 100 : 0;
   const isOver = spent > amount;
   const isNearThreshold = !isOver && pct >= alertThresholdPct;
   const clampedPct = Math.min(100, Math.max(0, pct));
+  const isHealthy = !isOver && !isNearThreshold;
+  const accent = accentColor ?? "var(--income)";
 
-  const barColor = isOver ? "bg-destructive" : isNearThreshold ? "bg-warning" : "bg-income";
+  const barColor = isOver ? "bg-destructive" : isNearThreshold ? "bg-warning" : "";
   const badgeClasses = isOver
     ? "bg-destructive/10 text-destructive"
     : "bg-warning-soft text-warning";
@@ -33,14 +40,21 @@ export function BudgetProgressItem({
     ? "bg-destructive/10 text-destructive"
     : isNearThreshold
       ? "bg-warning-soft text-warning"
-      : "bg-income-soft text-income";
-  const pctClasses = isOver ? "text-destructive" : isNearThreshold ? "text-warning" : "text-income";
+      : "";
+  const pctClasses = isOver ? "text-destructive" : isNearThreshold ? "text-warning" : "";
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-3">
-          <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${iconClasses}`}>
+          <span
+            className={`flex size-9 shrink-0 items-center justify-center rounded-full ${iconClasses}`}
+            style={
+              isHealthy
+                ? { color: accent, backgroundColor: `color-mix(in oklch, ${accent} 16%, transparent)` }
+                : undefined
+            }
+          >
             <Wallet className="size-4.5" aria-hidden="true" />
           </span>
           <div>
@@ -67,10 +81,16 @@ export function BudgetProgressItem({
         <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
           <div
             className={`h-full rounded-full transition-[width] ${barColor}`}
-            style={{ width: `${clampedPct}%` }}
+            style={{
+              width: `${clampedPct}%`,
+              ...(isHealthy ? { backgroundColor: accent } : {}),
+            }}
           />
         </div>
-        <span className={`shrink-0 text-xs font-semibold tabular-nums ${pctClasses}`}>
+        <span
+          className={`shrink-0 text-xs font-semibold tabular-nums ${pctClasses}`}
+          style={isHealthy ? { color: accent } : undefined}
+        >
           {Math.round(pct)}%
         </span>
       </div>
